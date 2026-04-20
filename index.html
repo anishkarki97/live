@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Top 5 Leagues & Cups | Live & Today</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #0a0a0a;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 20px;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.refresh-btn {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 24px;
+  width: 100%;
+  max-width: 200px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  transition: opacity 0.2s;
+}
+
+.refresh-btn:hover {
+  opacity: 0.8;
+}
+
+.match-card {
+  background: #1a1a1a;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #2a2a2a;
+  transition: transform 0.2s;
+}
+
+.match-card:hover {
+  transform: translateY(-2px);
+  border-color: #22c55e;
+}
+
+.league-header {
+  background: #0f0f0f;
+  padding: 10px 16px;
+  border-bottom: 1px solid #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.league-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #22c55e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.league-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.country-name {
+  font-size: 10px;
+  color: #888;
+  background: #2a2a2a;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.cup-badge {
+  background: #8b5cf6;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.match-body {
+  padding: 16px;
+}
+
+.match-status {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+
+.status-live {
+  background: #22c55e;
+  color: #000;
+}
+
+.status-upcoming {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.match-teams {
+  text-align: center;
+  margin: 15px 0;
+}
+
+.team-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+
+.team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.team-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.vs {
+  font-size: 14px;
+  color: #666;
+  font-weight: normal;
+}
+
+.match-score {
+  font-size: 18px;
+  font-weight: bold;
+  color: #22c55e;
+  margin: 0 15px;
+  font-family: monospace;
+}
+
+.match-minute {
+  text-align: center;
+  font-size: 11px;
+  color: #ff4444;
+  margin-top: 5px;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.match-time {
+  text-align: center;
+  font-size: 12px;
+  color: #22c55e;
+  margin-top: 10px;
+  font-family: monospace;
+}
+
+.links-container {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #2a2a2a;
+}
+
+.stream-link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a0a0a;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s;
+  border: 1px solid #2a2a2a;
+  font-weight: bold;
+  font-size: 13px;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.stream-link:hover {
+  background: #1a1a1a;
+  border-color: #22c55e;
+  transform: scale(1.02);
+}
+
+.link-label-1 {
+  color: #3b82f6;
+}
+
+.link-label-2 {
+  color: #8b5cf6;
+}
+
+.loading, .error, .no-matches {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.stats {
+  text-align: center;
+  font-size: 12px;
+  color: #555;
+  margin-top: 20px;
+  padding: 10px;
+  background: #111;
+  border-radius: 8px;
+}
+
+.timezone-info {
+  text-align: center;
+  font-size: 11px;
+  color: #22c55e;
+  margin-bottom: 15px;
+  font-family: monospace;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 20px 0 15px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #22c55e;
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.upcoming-match {
+  background: #141414;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-left: 3px solid #3b82f6;
+}
+
+.upcoming-time {
+  background: #3b82f6;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  font-family: monospace;
+  min-width: 80px;
+  text-align: center;
+}
+
+.upcoming-teams {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.upcoming-team-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.upcoming-team-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.upcoming-vs {
+  font-size: 11px;
+  color: #666;
+  margin: 0 4px;
+}
+
+.league-group {
+  margin-bottom: 20px;
+  background: #111;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.league-group-header {
+  background: #0a0a0a;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.league-group-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.league-group-name {
+  font-size: 14px;
+  font-weight: bold;
+  color: #22c55e;
+}
+
+.league-group-country {
+  font-size: 11px;
+  color: #888;
+  margin-left: auto;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.live-pulse {
+  animation: pulse 1.5s infinite;
+}
+
+.score-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.team-score {
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff;
+  background: #0a0a0a;
+  padding: 4px 12px;
+  border-radius: 8px;
+  min-width: 50px;
+  text-align: center;
+}
+
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.95);
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  position: relative;
+  background-color: #0a0a0a;
+  margin: 20px auto;
+  padding: 0;
+  width: 95%;
+  height: 90%;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #22c55e;
+  box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
+}
+
+.modal-header {
+  padding: 12px 16px;
+  background: #1a1a1a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.modal-title {
+  color: #22c55e;
+  font-weight: bold;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.close-modal {
+  color: #fff;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.2s;
+  line-height: 20px;
+}
+
+.close-modal:hover {
+  color: #22c55e;
+}
+
+.modal-iframe {
+  width: 100%;
+  height: calc(100% - 50px);
+  border: none;
+  background: #000;
+}
+
+.modal-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.fullscreen-btn {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: opacity 0.2s;
+}
+
+.fullscreen-btn:hover {
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border-radius: 0;
+  }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>
+    ⚽ TOP 5 LEAGUES & CUPS
+    <span style="font-size: 12px; background: #22c55e20; padding: 4px 10px; border-radius: 20px;">LIVE & TODAY</span>
+  </h1>
+  <div class="timezone-info" id="timezoneInfo">📍 Detecting your timezone...</div>
+  <button class="refresh-btn" onclick="fetchMatches()">🔄 LOAD MATCHES</button>
+  <div id="output">
+    <div class="loading">Click button to load matches</div>
+  </div>
+  <div class="stats" id="stats"></div>
+</div>
+
+<!-- Modal for iframe -->
+<div id="streamModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span>🎬</span>
+        <span id="modalMatchTitle">Live Stream</span>
+      </div>
+      <div class="modal-controls">
+        <button class="fullscreen-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+        <span class="close-modal">&times;</span>
+      </div>
+    </div>
+    <iframe id="streamIframe" class="modal-iframe" src="" allowfullscreen></iframe>
+  </div>
+</div>
+
+<script>
+// ⚠️ REPLACE WITH YOUR FOOTBALL-DATA.ORG API KEY
+const API_KEY = "ab6a85a65dd34c43bb018ebec1081e33";
+
+// Football-Data.org competition codes for Top 5 Leagues
+const TOP_LEAGUES = {
+  "PL": { name: "Premier League", country: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", area: 2072, type: "league" },
+  "PD": { name: "La Liga", country: "Spain", flag: "🇪🇸", area: 2224, type: "league" },
+  "BL1": { name: "Bundesliga", country: "Germany", flag: "🇩🇪", area: 2088, type: "league" },
+  "SA": { name: "Serie A", country: "Italy", flag: "🇮🇹", area: 2114, type: "league" },
+  "FL1": { name: "Ligue 1", country: "France", flag: "🇫🇷", area: 2220, type: "league" }
+};
+
+// Top Cup competitions (Football-Data.org codes)
+const TOP_CUPS = {
+  "CL": { name: "UEFA Champions League", type: "cup", area: 2077 },
+  "EL": { name: "UEFA Europa League", type: "cup", area: 2077 },
+  "EC": { name: "UEFA Europa Conference League", type: "cup", area: 2077 },
+  "FAC": { name: "FA Cup", type: "cup", area: 2072 },
+  "ELC": { name: "EFL Cup", type: "cup", area: 2072 },
+  "CDR": { name: "Copa del Rey", type: "cup", area: 2224 },
+  "CIT": { name: "Coppa Italia", type: "cup", area: 2114 },
+  "DFB": { name: "DFB Pokal", type: "cup", area: 2088 },
+  "CDF": { name: "Coupe de France", type: "cup", area: 2220 }
+};
+
+// All allowed competitions
+const ALLOWED_COMPETITIONS = { ...TOP_LEAGUES, ...TOP_CUPS };
+const ALLOWED_CODES = Object.keys(ALLOWED_COMPETITIONS);
+
+// Map of common short names to FULL names
+const FULL_NAME_MAP = {
+  // Premier League (England)
+  "man utd": "manchester united",
+  "manchester utd": "manchester united",
+  "man city": "manchester city",
+  "newcastle": "newcastle united",
+  "west ham": "west ham united",
+  "wolves": "wolverhampton wanderers",
+  "spurs": "tottenham hotspur",
+  "tottenham": "tottenham hotspur",
+  "brighton": "brighton and hove albion",
+  "leicester": "leicester city",
+  "leeds": "leeds united",
+  
+  // La Liga (Spain)
+  "barca": "barcelona",
+  "real madrid": "real madrid",
+  "atletico": "atletico madrid",
+  
+  // Bundesliga (Germany)
+  "bayern": "bayern munich",
+  "dortmund": "borussia dortmund",
+  
+  // Serie A (Italy)
+  "inter": "inter milan",
+  "milan": "ac milan",
+  "juve": "juventus",
+  
+  // Ligue 1 (France)
+  "psg": "paris saint germain",
+  "marseille": "olympique marseille",
+  "lyon": "olympique lyonnais"
+};
+
+function getFullTeamName(name) {
+  if (!name) return "";
+  const lowerName = name.toLowerCase().trim();
+  
+  if (FULL_NAME_MAP[lowerName]) {
+    return FULL_NAME_MAP[lowerName];
+  }
+  
+  for (const [key, fullName] of Object.entries(FULL_NAME_MAP)) {
+    if (lowerName.includes(key)) {
+      return fullName;
+    }
+  }
+  
+  return name;
+}
+
+function formatTeamName(name) {
+  const fullName = getFullTeamName(name);
+  
+  return fullName
+    .toLowerCase()
+    .replace(/&/g, '')
+    .replace(/\band\b/g, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
+// Auto-detect user's timezone
+function getUserTimezone() {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
+function getMatchTime(dateStr, timezone) {
+  const date = new Date(dateStr);
+  return date.toLocaleTimeString("en-GB", {
+    timeZone: timezone,
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function getTimezoneAbbreviation() {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en', { timeZoneName: 'short' });
+  const parts = formatter.formatToParts(now);
+  const tzPart = parts.find(part => part.type === 'timeZoneName');
+  return tzPart ? tzPart.value : '';
+}
+
+function isTodayInUserTimezone(dateStr, timezone) {
+  const matchDate = new Date(dateStr).toLocaleDateString("en-CA", { timeZone: timezone });
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: timezone });
+  return matchDate === today;
+}
+
+function isLiveMatch(status) {
+  const liveStatuses = ["LIVE", "IN_PLAY", "PAUSED"];
+  return liveStatuses.includes(status);
+}
+
+function getMatchMinute(match) {
+  const status = match.status;
+  
+  if (status === "FINISHED") {
+    return "Full Time";
+  }
+  
+  if (status === "PAUSED") {
+    return "Half Time";
+  }
+  
+  if (match.minute) {
+    return `${match.minute}'`;
+  }
+  
+  return "LIVE";
+}
+
+function getMatchScore(match) {
+  const homeScore = match.score.fullTime.home !== null ? match.score.fullTime.home : "?";
+  const awayScore = match.score.fullTime.away !== null ? match.score.fullTime.away : "?";
+  return { home: homeScore, away: awayScore };
+}
+
+function generateStreamUrls(homeTeam, awayTeam) {
+  const team1 = formatTeamName(homeTeam);
+  const team2 = formatTeamName(awayTeam);
+  const baseUrl = `https://embedsports.top/embed/admin/ppv-${team1}-vs-${team2}`;
+  return {
+    link1: `${baseUrl}/1`,
+    link2: `${baseUrl}/2`
+  };
+}
+
+// Modal functions
+const modal = document.getElementById("streamModal");
+const iframe = document.getElementById("streamIframe");
+const modalTitle = document.getElementById("modalMatchTitle");
+
+function openStream(url, title) {
+  iframe.src = url;
+  modalTitle.innerHTML = `<span>🎬</span> ${title}`;
+  modal.style.display = "block";
+  document.body.style.overflow = "hidden";
+}
+
+function closeModal() {
+  iframe.src = "";
+  modal.style.display = "none";
+  document.body.style.overflow = "auto";
+}
+
+function toggleFullscreen() {
+  const modalContent = document.querySelector(".modal-content");
+  if (!document.fullscreenElement) {
+    modalContent.requestFullscreen().catch(err => {
+      console.log(`Error attempting fullscreen: ${err.message}`);
+    });
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+// Close modal when clicking X or outside
+document.querySelector(".close-modal").onclick = closeModal;
+window.onclick = function(event) {
+  if (event.target === modal) {
+    closeModal();
+  }
+}
+
+// Escape key to close
+document.addEventListener("keydown", function(event) {
+  if (event.key === "Escape" && modal.style.display === "block") {
+    closeModal();
+  }
+});
+
+// Display timezone info
+function displayTimezoneInfo() {
+  const timezone = getUserTimezone();
+  const abbreviation = getTimezoneAbbreviation();
+  const infoDiv = document.getElementById("timezoneInfo");
+  infoDiv.innerHTML = `🕐 Your timezone: ${timezone} ${abbreviation ? `(${abbreviation})` : ''}`;
+}
+
+async function fetchMatches() {
+  const outputDiv = document.getElementById("output");
+  const statsDiv = document.getElementById("stats");
+  const userTimezone = getUserTimezone();
+  
+  outputDiv.innerHTML = '<div class="loading">📡 Fetching matches...</div>';
+  statsDiv.innerHTML = '';
+  
+  try {
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split("T")[0];
+    
+    // Fetch matches for today
+    const url = `https://api.football-data.org/v4/matches?dateFrom=${today}&dateTo=${today}`;
+    
+    const response = await fetch(url, {
+      headers: { 
+        "X-Auth-Token": API_KEY 
+      }
+    });
+    
+    if (!response.ok) {
+      if (response.status === 429) {
+        throw new Error(`Rate limit exceeded. Please wait before trying again.`);
+      }
+      throw new Error(`API Error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    const allMatches = data.matches || [];
+    
+    // Filter ONLY top 5 leagues + top cups
+    const relevantMatches = allMatches.filter(match => 
+      ALLOWED_CODES.includes(match.competition.code)
+    );
+    
+    if (relevantMatches.length === 0) {
+      outputDiv.innerHTML = '<div class="no-matches">❌ No matches in Top 5 leagues or cups today.</div>';
+      return;
+    }
+    
+    // Separate live and upcoming matches
+    const liveMatches = [];
+    const upcomingMatches = [];
+    
+    for (const match of relevantMatches) {
+      const status = match.status;
+      const isLive = isLiveMatch(status);
+      const fixtureDate = match.utcDate;
+      const isUpcoming = (status === "SCHEDULED" || status === "TIMED") && isTodayInUserTimezone(fixtureDate, userTimezone);
+      
+      if (isLive) {
+        liveMatches.push(match);
+      } else if (isUpcoming) {
+        upcomingMatches.push(match);
+      }
+    }
+    
+    let outputHtml = '';
+    
+    // ========== LIVE MATCHES SECTION ==========
+    if (liveMatches.length > 0) {
+      outputHtml += `<div class="section-title">🔴 LIVE MATCHES</div>`;
+      
+      for (const match of liveMatches) {
+        const originalHome = match.homeTeam.name;
+        const originalAway = match.awayTeam.name;
+        const fullHome = getFullTeamName(originalHome);
+        const fullAway = getFullTeamName(originalAway);
+        
+        const competitionCode = match.competition.code;
+        const isCup = TOP_CUPS[competitionCode];
+        let competitionInfo, competitionName;
+        
+        if (isCup) {
+          competitionInfo = TOP_CUPS[competitionCode];
+          competitionName = competitionInfo.name;
+        } else {
+          competitionInfo = TOP_LEAGUES[competitionCode];
+          competitionName = competitionInfo.name;
+        }
+        
+        // Use crest URLs if available, otherwise use placeholder
+        const homeLogo = match.homeTeam.crest || `https://via.placeholder.com/32/22c55e/000000?text=${fullHome.charAt(0)}`;
+        const awayLogo = match.awayTeam.crest || `https://via.placeholder.com/32/22c55e/000000?text=${fullAway.charAt(0)}`;
+        
+        const urls = generateStreamUrls(fullHome, fullAway);
+        const minute = getMatchMinute(match);
+        const score = getMatchScore(match);
+        const matchTitle = `${competitionName}: ${fullHome} vs ${fullAway}`;
+        
+        outputHtml += `
+          <div class="match-card">
+            <div class="league-header">
+              <div class="league-name">
+                ${competitionName}
+                ${!isCup && competitionInfo.country ? `<span class="country-name">${competitionInfo.flag} ${competitionInfo.country}</span>` : ''}
+                ${isCup ? '<span class="cup-badge">🏆 CUP</span>' : ''}
+              </div>
+            </div>
+            <div class="match-body">
+              <div class="match-status status-live live-pulse">🔴 LIVE ${minute !== "LIVE" ? `• ${minute}` : ''}</div>
+              <div class="match-teams">
+                <div class="team-row">
+                  <div class="team">
+                    <img class="team-logo" src="${homeLogo}" alt="${fullHome}" onerror="this.style.display='none'">
+                    <span>${fullHome}</span>
+                  </div>
+                  <div class="score-display">
+                    <span class="team-score">${score.home}</span>
+                    <span class="vs">-</span>
+                    <span class="team-score">${score.away}</span>
+                  </div>
+                  <div class="team">
+                    <img class="team-logo" src="${awayLogo}" alt="${fullAway}" onerror="this.style.display='none'">
+                    <span>${fullAway}</span>
+                  </div>
+                </div>
+                ${minute !== "Full Time" && minute !== "Half Time" && minute !== "LIVE" ? `<div class="match-minute">⏱️ ${minute}</div>` : ''}
+              </div>
+              <div class="links-container">
+                <div class="stream-link" onclick="openStream('${urls.link1}', '${matchTitle.replace(/'/g, "\\'")} - Link 1')">
+                  <span class="link-label-1">▶ LINK 1</span>
+                </div>
+                <div class="stream-link" onclick="openStream('${urls.link2}', '${matchTitle.replace(/'/g, "\\'")} - Link 2')">
+                  <span class="link-label-2">▶ LINK 2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    // ========== UPCOMING MATCHES SECTION ==========
+    if (upcomingMatches.length > 0) {
+      outputHtml += `<div class="section-title">📅 UPCOMING TODAY</div>`;
+      
+      // Group upcoming matches by league
+      const matchesByLeague = {};
+      
+      for (const match of upcomingMatches) {
+        const competitionCode = match.competition.code;
+        if (!matchesByLeague[competitionCode]) {
+          matchesByLeague[competitionCode] = [];
+        }
+        matchesByLeague[competitionCode].push(match);
+      }
+      
+      // Display matches by league
+      for (const [competitionCode, matches] of Object.entries(matchesByLeague)) {
+        const isCup = TOP_CUPS[competitionCode];
+        let leagueInfo, leagueName, countryInfo;
+        
+        if (isCup) {
+          leagueInfo = TOP_CUPS[competitionCode];
+          leagueName = leagueInfo.name;
+          countryInfo = null;
+        } else {
+          leagueInfo = TOP_LEAGUES[competitionCode];
+          leagueName = leagueInfo.name;
+          countryInfo = leagueInfo;
+        }
+        
+        outputHtml += `
+          <div class="league-group">
+            <div class="league-group-header">
+              <span class="league-group-name">${leagueName}</span>
+              ${countryInfo ? `<span class="league-group-country">${countryInfo.flag} ${countryInfo.country}</span>` : '<span class="cup-badge">🏆 CUP</span>'}
+            </div>
+        `;
+        
+        for (const match of matches) {
+          const originalHome = match.homeTeam.name;
+          const originalAway = match.awayTeam.name;
+          const fullHome = getFullTeamName(originalHome);
+          const fullAway = getFullTeamName(originalAway);
+          
+          const matchTime = getMatchTime(match.utcDate, userTimezone);
+          const homeLogo = match.homeTeam.crest || `https://via.placeholder.com/24/3b82f6/ffffff?text=${fullHome.charAt(0)}`;
+          const awayLogo = match.awayTeam.crest || `https://via.placeholder.com/24/3b82f6/ffffff?text=${fullAway.charAt(0)}`;
+          
+          outputHtml += `
+            <div class="upcoming-match">
+              <div class="upcoming-time">⏰ ${matchTime}</div>
+              <div class="upcoming-teams">
+                <img class="upcoming-team-logo" src="${homeLogo}" onerror="this.style.display='none'">
+                <span class="upcoming-team-name">${fullHome}</span>
+                <span class="upcoming-vs">vs</span>
+                <img class="upcoming-team-logo" src="${awayLogo}" onerror="this.style.display='none'">
+                <span class="upcoming-team-name">${fullAway}</span>
+              </div>
+            </div>
+          `;
+        }
+        
+        outputHtml += `</div>`;
+      }
+    }
+    
+    if (liveMatches.length === 0 && upcomingMatches.length === 0) {
+      outputDiv.innerHTML = '<div class="no-matches">📅 No live or upcoming matches right now.</div>';
+    } else {
+      outputDiv.innerHTML = outputHtml;
+      statsDiv.innerHTML = `📊 ${liveMatches.length} LIVE • ${upcomingMatches.length} UPCOMING • ${new Date().toLocaleTimeString()}`;
+    }
+    
+  } catch (error) {
+    console.error(error);
+    outputDiv.innerHTML = `<div class="error">⚠️ Error: ${error.message}<br><br>Make sure API key is valid and you haven't exceeded rate limits (10 calls/minute for free tier).</div>`;
+  }
+}
+
+// Display timezone info on load
+displayTimezoneInfo();
+</script>
+</body>
+</html>
