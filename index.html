@@ -35,6 +35,46 @@ h1 {
   flex-wrap: wrap;
 }
 
+.api-key-section {
+  background: #1a1a1a;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #2a2a2a;
+}
+
+.api-key-input {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.api-key-input input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #2a2a2a;
+  background: #0a0a0a;
+  color: #fff;
+  font-family: monospace;
+}
+
+.api-key-input button {
+  padding: 10px 20px;
+  background: #22c55e;
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.api-note {
+  font-size: 11px;
+  color: #888;
+  margin-top: 8px;
+}
+
 .refresh-btn {
   background: #3b82f6;
   color: #fff;
@@ -55,6 +95,11 @@ h1 {
 
 .refresh-btn:hover {
   opacity: 0.8;
+}
+
+.refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .match-card {
@@ -489,10 +534,21 @@ h1 {
     ⚽ TOP 5 LEAGUES & CUPS
     <span style="font-size: 12px; background: #22c55e20; padding: 4px 10px; border-radius: 20px;">LIVE & TODAY</span>
   </h1>
+  
+  <div class="api-key-section">
+    <div class="api-key-input">
+      <input type="password" id="apiKeyInput" placeholder="Enter your Football-Data.org API Key" value="">
+      <button onclick="saveApiKey()">💾 Save Key</button>
+    </div>
+    <div class="api-note">
+      ⚡ Get your free API key at <a href="https://www.football-data.org/client/register" target="_blank" style="color: #22c55e;">football-data.org</a> • Free tier: 10 calls/minute
+    </div>
+  </div>
+  
   <div class="timezone-info" id="timezoneInfo">📍 Detecting your timezone...</div>
-  <button class="refresh-btn" onclick="fetchMatches()">🔄 LOAD MATCHES</button>
+  <button class="refresh-btn" id="refreshBtn" onclick="fetchMatches()">🔄 LOAD MATCHES</button>
   <div id="output">
-    <div class="loading">Click button to load matches</div>
+    <div class="loading">Enter your API key and click button to load matches</div>
   </div>
   <div class="stats" id="stats"></div>
 </div>
@@ -515,9 +571,6 @@ h1 {
 </div>
 
 <script>
-// ⚠️ REPLACE WITH YOUR FOOTBALL-DATA.ORG API KEY
-const API_KEY = "ab6a85a65dd34c43bb018ebec1081e33";
-
 // Football-Data.org competition codes for Top 5 Leagues
 const TOP_LEAGUES = {
   "PL": { name: "Premier League", country: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", area: 2072, type: "league" },
@@ -544,9 +597,20 @@ const TOP_CUPS = {
 const ALLOWED_COMPETITIONS = { ...TOP_LEAGUES, ...TOP_CUPS };
 const ALLOWED_CODES = Object.keys(ALLOWED_COMPETITIONS);
 
+// CORS Proxies to try (in order)
+const CORS_PROXIES = [
+  "https://api.allorigins.win/raw?url=",
+  "https://corsproxy.io/?"
+];
+
+let currentProxyIndex = 0;
+let apiKey = localStorage.getItem('football_data_api_key') || '';
+
+// Initialize API key from localStorage
+document.getElementById('apiKeyInput').value = apiKey;
+
 // Map of common short names to FULL names
 const FULL_NAME_MAP = {
-  // Premier League (England)
   "man utd": "manchester united",
   "manchester utd": "manchester united",
   "man city": "manchester city",
@@ -558,26 +622,29 @@ const FULL_NAME_MAP = {
   "brighton": "brighton and hove albion",
   "leicester": "leicester city",
   "leeds": "leeds united",
-  
-  // La Liga (Spain)
   "barca": "barcelona",
   "real madrid": "real madrid",
   "atletico": "atletico madrid",
-  
-  // Bundesliga (Germany)
   "bayern": "bayern munich",
   "dortmund": "borussia dortmund",
-  
-  // Serie A (Italy)
   "inter": "inter milan",
   "milan": "ac milan",
   "juve": "juventus",
-  
-  // Ligue 1 (France)
   "psg": "paris saint germain",
   "marseille": "olympique marseille",
   "lyon": "olympique lyonnais"
 };
+
+function saveApiKey() {
+  const input = document.getElementById('apiKeyInput');
+  apiKey = input.value.trim();
+  if (apiKey) {
+    localStorage.setItem('football_data_api_key', apiKey);
+    alert('API Key saved!');
+  } else {
+    alert('Please enter a valid API key');
+  }
+}
 
 function getFullTeamName(name) {
   if (!name) return "";
@@ -608,7 +675,6 @@ function formatTeamName(name) {
     .replace(/\s+/g, '-');
 }
 
-// Auto-detect user's timezone
 function getUserTimezone() {
   return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
@@ -704,7 +770,6 @@ function toggleFullscreen() {
   }
 }
 
-// Close modal when clicking X or outside
 document.querySelector(".close-modal").onclick = closeModal;
 window.onclick = function(event) {
   if (event.target === modal) {
@@ -712,14 +777,12 @@ window.onclick = function(event) {
   }
 }
 
-// Escape key to close
 document.addEventListener("keydown", function(event) {
   if (event.key === "Escape" && modal.style.display === "block") {
     closeModal();
   }
 });
 
-// Display timezone info
 function displayTimezoneInfo() {
   const timezone = getUserTimezone();
   const abbreviation = getTimezoneAbbreviation();
@@ -727,48 +790,62 @@ function displayTimezoneInfo() {
   infoDiv.innerHTML = `🕐 Your timezone: ${timezone} ${abbreviation ? `(${abbreviation})` : ''}`;
 }
 
+async function fetchWithProxy(url, headers, proxyIndex = 0) {
+  if (proxyIndex >= CORS_PROXIES.length) {
+    throw new Error("All CORS proxies failed");
+  }
+  
+  const proxy = CORS_PROXIES[proxyIndex];
+  const targetUrl = encodeURIComponent(url);
+  const proxyUrl = proxy + targetUrl;
+  
+  try {
+    const response = await fetch(proxyUrl, { headers });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.log(`Proxy ${proxyIndex + 1} failed, trying next...`);
+    return fetchWithProxy(url, headers, proxyIndex + 1);
+  }
+}
+
 async function fetchMatches() {
   const outputDiv = document.getElementById("output");
   const statsDiv = document.getElementById("stats");
+  const refreshBtn = document.getElementById("refreshBtn");
   const userTimezone = getUserTimezone();
   
+  if (!apiKey) {
+    outputDiv.innerHTML = '<div class="error">⚠️ Please enter your Football-Data.org API key above.</div>';
+    return;
+  }
+  
+  refreshBtn.disabled = true;
   outputDiv.innerHTML = '<div class="loading">📡 Fetching matches...</div>';
   statsDiv.innerHTML = '';
   
   try {
-    // Get today's date in YYYY-MM-DD format
     const today = new Date().toISOString().split("T")[0];
-    
-    // Fetch matches for today
     const url = `https://api.football-data.org/v4/matches?dateFrom=${today}&dateTo=${today}`;
     
-    const response = await fetch(url, {
-      headers: { 
-        "X-Auth-Token": API_KEY 
-      }
+    const data = await fetchWithProxy(url, {
+      "X-Auth-Token": apiKey
     });
     
-    if (!response.ok) {
-      if (response.status === 429) {
-        throw new Error(`Rate limit exceeded. Please wait before trying again.`);
-      }
-      throw new Error(`API Error: ${response.status}`);
-    }
-    
-    const data = await response.json();
     const allMatches = data.matches || [];
     
-    // Filter ONLY top 5 leagues + top cups
     const relevantMatches = allMatches.filter(match => 
       ALLOWED_CODES.includes(match.competition.code)
     );
     
     if (relevantMatches.length === 0) {
       outputDiv.innerHTML = '<div class="no-matches">❌ No matches in Top 5 leagues or cups today.</div>';
+      refreshBtn.disabled = false;
       return;
     }
     
-    // Separate live and upcoming matches
     const liveMatches = [];
     const upcomingMatches = [];
     
@@ -787,7 +864,6 @@ async function fetchMatches() {
     
     let outputHtml = '';
     
-    // ========== LIVE MATCHES SECTION ==========
     if (liveMatches.length > 0) {
       outputHtml += `<div class="section-title">🔴 LIVE MATCHES</div>`;
       
@@ -809,7 +885,6 @@ async function fetchMatches() {
           competitionName = competitionInfo.name;
         }
         
-        // Use crest URLs if available, otherwise use placeholder
         const homeLogo = match.homeTeam.crest || `https://via.placeholder.com/32/22c55e/000000?text=${fullHome.charAt(0)}`;
         const awayLogo = match.awayTeam.crest || `https://via.placeholder.com/32/22c55e/000000?text=${fullAway.charAt(0)}`;
         
@@ -861,11 +936,9 @@ async function fetchMatches() {
       }
     }
     
-    // ========== UPCOMING MATCHES SECTION ==========
     if (upcomingMatches.length > 0) {
       outputHtml += `<div class="section-title">📅 UPCOMING TODAY</div>`;
       
-      // Group upcoming matches by league
       const matchesByLeague = {};
       
       for (const match of upcomingMatches) {
@@ -876,7 +949,6 @@ async function fetchMatches() {
         matchesByLeague[competitionCode].push(match);
       }
       
-      // Display matches by league
       for (const [competitionCode, matches] of Object.entries(matchesByLeague)) {
         const isCup = TOP_CUPS[competitionCode];
         let leagueInfo, leagueName, countryInfo;
@@ -936,11 +1008,12 @@ async function fetchMatches() {
     
   } catch (error) {
     console.error(error);
-    outputDiv.innerHTML = `<div class="error">⚠️ Error: ${error.message}<br><br>Make sure API key is valid and you haven't exceeded rate limits (10 calls/minute for free tier).</div>`;
+    outputDiv.innerHTML = `<div class="error">⚠️ Error: ${error.message}<br><br>Try again or check your API key.</div>`;
+  } finally {
+    refreshBtn.disabled = false;
   }
 }
 
-// Display timezone info on load
 displayTimezoneInfo();
 </script>
 </body>
